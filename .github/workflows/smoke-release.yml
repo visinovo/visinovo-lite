@@ -1,0 +1,181 @@
+# Visinovo Lite – Release Smoke-Test
+#
+# Prueft die aktuell veroffentlichte Release-EXE (ohne Quellcode,
+# ohne Build):
+#   1. laedt die Setup-EXE des aktuellen Releases
+#   2. prueft SHA-256 gegen die dokumentierte Pruefsumme
+#      (Release-Body, Fallback: SHA256SUMS.txt)
+#   3. installiert in ein Temp-Verzeichnis (User-Install, ohne Admin)
+#   4. startet die App (headless) und wartet auf Bereitschaft (127.0.0.1)
+#   5. prueft den Analyseaustausch (Dashboard, Listings, 3-Limit,
+#      Analyse) via scripts/smoke_release.py
+#   6. deinstalliert und verifiziert, dass die Daten erhalten bleiben
+#
+# Trigger: NUR manuell (workflow_dispatch) oder bei neuen Releases.
+# Es findet KEIN automatischer Build statt.
+
+name: Release Smoke-Test
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke-Test (Windows, freigegebene Binary)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout (nur Doku/Skripte, kein Quellcode)
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Download Setup-EXE des aktuellen Releases
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path downloads | Out-Null
+          gh release download latest `
+              --pattern "Visinovo-Lite-Setup-*.exe" `
+              --clobber -D downloads
+          Get-ChildItem downloads
+
+      - name: Dokumentierte SHA-256 ermitteln + Download verifizieren
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $exe = Get-ChildItem downloads -Filter "Visinovo-Lite-Setup-*.exe" | Select-Object -First 1
+          if ($null -eq $exe) { throw "Keine Setup-EXE im Release gefunden" }
+
+          # Primärquelle: Release-Body (Zeile "SHA-256: <hex>", s.
+          # docs/RELEASE_CHECKLIST.md Schritt 7). Fallback: SHA256SUMS.txt.
+          $json = gh release view latest --json body
+          $body = ($json | ConvertFrom-Json).body
+          $match = [regex]::Match($body, 'SHA-256:\s*([0-9a-fA-F]{64})')
+          $expected = $null
+          if ($match.Success) { $expected = $match.Groups[1].Value.ToUpper() }
+          if ([string]::IsNullOrEmpty($expected)) {
+              $sums = Get-Content SHA256SUMS.txt
+              $line = $sums | Where-Object { $_ -match [regex]::Escape($exe.Name) } | Select-Object -First 1
+              if ($line) { $expected = (($line -split '\s+')[0]).ToUpper() }
+          }
+          if ([string]::IsNullOrEmpty($expected)) {
+              throw "Keine dokumentierte SHA-256 gefunden (Release-Body ohne 'SHA-256:'-Zeile und SHA256SUMS.txt ohne Eintrag für $($exe.Name))"
+          }
+
+          $actual = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToUpper()
+          Write-Host "Erwartet: $expected"
+          Write-Host "Ist:      $actual"
+          if ($actual -ne $expected) {
+              throw "SHA-256-Pruefung fehlgeschlagen – Download nicht verifiziert"
+          }
+          Write-Host "SHA-256 ok"
+
+      - name: Installation (still, Temp-Verzeichnis, ohne Admin)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = (Get-ChildItem downloads -Filter "Visinovo-Lite-Setup-*.exe" | Select-Object -First 1).FullName
+          $installDir = Join-Path $env:RUNNER_TEMP "visinovo-lite-install"
+          # Inno Setup 6.7 (UseSetupLdr): die EXE ist ein Loader, der den
+          # eigentlichen Installer als Kindprozess startet – daher
+          # Start-Process -Wait plus Warten auf den Kindprozess.
+          $base = [System.IO.Path]::GetFileNameWithoutExtension($exe)
+          Start-Process -FilePath $exe `
+              -ArgumentList "/VERYSILENT","/NORESTART","/SUPPRESSMSGBOXES","/DIR=$installDir" `
+              -Wait | Out-Null
+          $deadline = (Get-Date).AddMinutes(5)
+          while ((Get-Date) -lt $deadline -and (Get-Process -Name $base -ErrorAction SilentlyContinue)) {
+              Start-Sleep -Milliseconds 500
+          }
+          $appExe = Join-Path $installDir "VisinovoLite.exe"
+          if (-not (Test-Path $appExe)) { throw "App-EXE nach Installation nicht gefunden: $appExe" }
+          Write-Host "Installiert nach: $installDir"
+
+      - name: App starten (headless) + Bereitschaft (127.0.0.1)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installDir = Join-Path $env:RUNNER_TEMP "visinovo-lite-install"
+          $dataDir = Join-Path $env:RUNNER_TEMP "visinovo-lite-data"
+          $env:VISINOVO_LITE_DATA_DIR = $dataDir   # isolierter Datenordner
+          $env:VISINOVO_LITE_UNINSTALL = "keep"    # Deinstall-Dialoge ueberspringen
+          $appExe = Join-Path $installDir "VisinovoLite.exe"
+          $proc = Start-Process -FilePath $appExe -ArgumentList "--no-gui" -PassThru
+
+          $port = $null
+          $lockFile = Join-Path $dataDir "lite-instance.lock"
+          $deadline = (Get-Date).AddSeconds(90)
+          while ((Get-Date) -lt $deadline) {
+              if ($proc.HasExited) { throw "App beendete sich beim Start (Exit $($proc.ExitCode))" }
+              if (Test-Path $lockFile) {
+                  $port = (Get-Content $lockFile -Raw | ConvertFrom-Json).port
+                  break
+              }
+              Start-Sleep -Milliseconds 500
+          }
+          if ($null -eq $port) { throw "Instanz-Sperre nicht gefunden – App hat nicht gestartet" }
+          Write-Host "App laeuft auf Port $port"
+
+          $healthy = $false
+          $deadline = (Get-Date).AddSeconds(60)
+          while ((Get-Date) -lt $deadline) {
+              try {
+                  $r = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:$port/healthz/" -TimeoutSec 5
+                  if ($r.StatusCode -eq 200) { $healthy = $true; break }
+              } catch { Start-Sleep -Milliseconds 500 }
+          }
+          if (-not $healthy) { throw "Health-Check fehlgeschlagen" }
+          Write-Host "Bereitschaft ok (127.0.0.1:$port)"
+
+          # Smoke-Test: Analyseaustausch (Dashboard, Listings, Limit, Analyse)
+          python scripts/smoke_release.py --port $port
+          if ($LASTEXITCODE -ne 0) { throw "Smoke-Test fehlgeschlagen" }
+
+          # App beenden
+          Stop-Process -Id $proc.Id -Force
+          $proc.WaitForExit(15000) | Out-Null
+          Write-Host "App beendet"
+
+      - name: Deinstallation + Daten erhalten?
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installDir = Join-Path $env:RUNNER_TEMP "visinovo-lite-install"
+          $dataDir = Join-Path $env:RUNNER_TEMP "visinovo-lite-data"
+          $env:VISINOVO_LITE_UNINSTALL = "keep"
+          $uninstallExe = Join-Path $installDir "unins000.exe"
+          if (-not (Test-Path $uninstallExe)) { throw "Deinstaller nicht gefunden: $uninstallExe" }
+
+          $base = "unins000"
+          Start-Process -FilePath $uninstallExe `
+              -ArgumentList "/VERYSILENT","/NORESTART","/SUPPRESSMSGBOXES" `
+              -Wait | Out-Null
+          $deadline = (Get-Date).AddMinutes(5)
+          while ((Get-Date) -lt $deadline -and (Get-Process -Name $base -ErrorAction SilentlyContinue)) {
+              Start-Sleep -Milliseconds 500
+          }
+          if (Test-Path (Join-Path $installDir "VisinovoLite.exe")) {
+              throw "App-EXE existiert nach Deinstallation noch"
+          }
+          $db = Join-Path $dataDir "data\visinovo.sqlite3"
+          if (-not (Test-Path $db)) {
+              throw "Datenbank fehlt nach Deinstallation – Daten wurden geloescht!"
+          }
+          Write-Host "Deinstallation ok, Daten erhalten: $db"
+
+      - name: Aufräumen (immer)
+        if: always()
+        shell: pwsh
+        run: |
+          Get-Process -Name VisinovoLite -ErrorAction SilentlyContinue | Stop-Process -Force
+          Remove-Item (Join-Path $env:RUNNER_TEMP "visinovo-lite-data") -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item (Join-Path $env:RUNNER_TEMP "visinovo-lite-install") -Recurse -Force -ErrorAction SilentlyContinue

@@ -1,0 +1,94 @@
+# Visinovo Lite
+
+**Kostenlose Windows-Desktop-App: Analysiere die Texte deiner digitalen
+Listings – komplett lokal, ohne Konto, ohne Cloud.**
+
+![Visinovo Lite](assets/icon.png)
+
+Visinovo Lite hilft Dir, Titel, Beschreibung und Tags Deiner digitalen
+Listings (z. B. für Etsy) zu verbessern – mit einem Qualitätsscore,
+Teilbewertungen und konkreten, regelbasierten Verbesserungsvorschlägen.
+Alle Daten bleiben **ausschließlich auf Deinem Computer**.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+## Funktionen
+
+- **Listing-Check (Analyse):** Qualitätsscore von 100 Punkten,
+  Teilbewertungen und konkrete Verbesserungsvorschläge für Titel,
+  Beschreibung und Tags – inkl. Titelvorschlag und bis zu 13
+  Tag-Vorschlägen.
+- **Listings verwalten:** bis zu **3 Listings** lokal speichern
+  (Titel, Beschreibung, Kategorie, Tags, Preis, Markt, Zielgruppe).
+- **Keyword-Analyse:** Chancen-Bewertung (0–100) für Suchbegriffe.
+- **CSV-Import:** importiere exportierte Statistiken (z. B. aus Etsy)
+  und verbinde sie mit Deinen Listings.
+- **Experimente:** dokumentiere Tests von Änderungen an Titeln,
+  Beschreibungen oder Tags und verfolge deren Wirkung.
+- **Berichte:** druckbare HTML- und PDF-Berichte zu einer Analyse.
+- **Lokale Einstellungen:** Datenpfad, Version und „Daten zurücksetzen“.
+
+> Hinweis: Die Analyse basiert auf klaren, lokal ausgeführten
+> Regeln und Listen (z. B. deutsche Stopwörter, Titel-/Tags-Limits).
+> Es werden **keine KI-Dienste** und **keine externen APIs** genutzt.
+
+## Voraussetzungen
+
+| | |
+|---|---|
+| Betriebssystem | Windows 10 oder 11 (64-Bit) |
+| Rechte | **Keine** Administratorrechte (User-Installation) |
+| Python/Node | nicht erforderlich (selbstständige App) |
+| Internet | **nicht erforderlich** für alle Funktionen |
+| Desktop-Fenster | Microsoft Edge WebView2 Runtime (in Windows 11 enthalten; auf Windows 10 meist bereits installiert) |
+
+## Installation (in Kürze)
+
+1. Die aktuellste **Setup-EXE** von den [Releases](https://github.com/visinovo/visinovo-lite/releases) herunterladen.
+2. Die Datei ausführen – der Installer installiert **ohne Admin** unter Deinem Benutzerkonto.
+3. Die App starten. Beim ersten Start wird die lokale Datenbank angelegt – danach läuft alles offline.
+
+Die vollständige Anleitung mit **Prüfsummen-Verifikation (SHA-256)** und
+Hinweisen zu SmartScreen-Warnungen findest Du in der
+[Installationsanleitung](docs/INSTALLATION.md).
+
+## Deinstallation
+
+Die App wird über die Windows-Systemeinstellung *Apps* (bzw.
+*Programme und Features*) deinstalliert. **Deine Daten bleiben dabei
+standardmäßig erhalten** – der Deinstaller fragt explizit, ob
+`%LOCALAPPDATA%\Visinovo` gelöscht werden soll.
+[Deinstallationsanleitung](docs/DEINSTALLATION.md).
+
+## Deine Daten bleiben bei Dir
+
+- Alle Daten liegen lokal unter **`%LOCALAPPDATA%\Visinovo`**
+  (Datenbank, Logs, Exporte).
+- **Kein** Cloud-Upload, **keine** Telemetrie, **kein** Tracking,
+  **kein** Account.
+- Die App ist nur auf **`127.0.0.1`** (Dein eigener Rechner) erreichbar
+  und braucht für ihre Funktionen **keine Internetverbindung**.
+
+Details im [Datenschutzhinweis](docs/DATENSCHUTZ.md).
+
+## Lizenz & Support
+
+- Visinovo Lite ist **Freeware** – die Nutzung ist kostenlos. Bitte
+  lies die [Lizenzbedingungen (EULA)](LICENSE.md) vor der Installation.
+  Die Software ist **keine** Open-Source-Veröffentlichung.
+- Fehlerberichte, Ideen und Fragen:
+  [GitHub Issues](https://github.com/visinovo/visinovo-lite/issues)
+  (siehe [Support](docs/SUPPORT.md)).
+- Wenn Dir Visinovo Lite gefällt und Du das Projekt unterstützen
+  möchtest, hilft das sehr:
+  [Buy Me a Coffee](https://www.buymeacoffee.com/visinovo)
+  (Link öffnet sich im externen Browser – die App selbst stellt
+  keine Verbindung dazu her).
+
+## Repository-Inhalt
+
+Dieses Repository enthält **keinen Quellcode**, sondern die
+Dokumentation, die Lizenz und die Freigabe-Prozesse. Die Installationsdatei
+wird als **GitHub-Release** bereitgestellt. Die aktuelle Prüfsumme steht
+in [`SHA256SUMS.txt`](SHA256SUMS.txt) und im
+[Changelog](CHANGELOG.md).

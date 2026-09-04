@@ -1,0 +1,42 @@
+# Visinovo Lite (öffentlich) – Git-Ignore
+#
+# Dieses Repository enthält bewusst KEINEN Quellcode der App.
+# Exkludiert: Build-/Test-Artefakte, heruntergeladene Binaries,
+# Python-Caches, Umgebungsdateien und Temporaries.
+
+# Python (Smoke-Test-Skript ist stdlib, kann aber Caches erzeugen)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build-/Release-Artefakte (Setup-EXEs etc. gehören in GitHub Releases)
+dist/
+build/
+*.exe
+*.7z
+*.zip
+*.nupkg
+
+# Smoke-Test: heruntergeladene Binaries und Test-Installation
+downloads/
+smoke-temp/
+
+# Umgebungsvariablen (enthält ggf. sensible Werte – gehören nie ins Repo)
+.env
+.env.*
+*.env
+
+# Logs & Temporaries
+*.log
+tmp/
+.tmp/
+.cache/
+
+# Betriebssystem / Editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp

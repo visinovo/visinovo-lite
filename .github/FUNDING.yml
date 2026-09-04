@@ -1,0 +1,10 @@
+# Visinovo Lite – Projekt unterstützen
+#
+# WICHTIG (vor der Veröffentlichung): Die Werte unten sind PLATZHALTER.
+# Vor dem ersten öffentlichen Push durch die echten Profil-URLs ersetzen
+# (siehe docs/RELEASE_CHECKLIST.md, Schritt „FUNDING-Links befüllen").
+# Zeilen können einfach gelöscht werden, wenn ein Kanal nicht genutzt
+# werden soll.
+
+github: [visinovo]            # GitHub Sponsors: https://github.com/sponsors/<profil>
+buy_me_a_coffee: visinovo     # Buy Me a Coffee: https://www.buymeacoffee.com/<profil>
