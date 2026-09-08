@@ -9,9 +9,11 @@ Geprueft wird:
 
 1. ``/healthz/`` antwortet
 2. Das Dashboard rendert (Auto-Login, keine Login-UI)
-3. Drei Listings werden angelegt
-4. Das vierte Listing wird abgelehnt (3-Listing-Limit)
-5. Ein Listing wird analysiert (Qualitätsscore + Vorschläge)
+3. Das Demo-Listing des Ersterststarts ist vorhanden und wird gelöscht
+   (macht das 3-Listing-Limit frei)
+4. Drei Listings werden angelegt
+5. Das vierte Listing wird abgelehnt (3-Listing-Limit)
+6. Ein Listing wird analysiert (Qualitätsscore + Vorschläge)
 
 Start (Port kommt aus der Instanz-Sperre, s. Workflow/README):
 
@@ -90,7 +92,37 @@ def main() -> int:
     )
     check("Keine Login-UI in der Lite-Navigation", "Anmelden" not in body)
 
-    # 3./4. Drei Listings anlegen, viertes wird abgelehnt (3-Listing-Limit)
+    # 3. Demo-Listing des Ersterststarts: vorhanden, dann löschen (Limit frei)
+    list_body = s.get(f"{base}/app/listings/").read().decode("utf-8", "replace")
+    demo_match = re.search(r'href="(/app/listings/(\d+)/)"', list_body)
+    if demo_match:
+        demo_url, demo_pk = demo_match.group(1), demo_match.group(2)
+        check(
+            "Demo-Listing beim Ersterststart (Beispieldaten)",
+            "Stirnholzbrett Birke" in list_body,
+            "Listing vorhanden, aber nicht das Demo-Listing",
+        )
+        form = s.get(f"{base}{demo_url}").read().decode("utf-8", "replace")
+        r = s.post(
+            f"{base}/app/listings/{demo_pk}/loeschen/",
+            {"csrfmiddlewaretoken": csrf_token(form)},
+        )
+        final_url = r.geturl()
+        body = r.read().decode("utf-8", "replace")
+        check(
+            "Demo-Listing gelöscht (Listing-Limit frei)",
+            final_url.rstrip("/").endswith("/app/listings")
+            and f"/app/listings/{demo_pk}/" not in body,
+            f"Final-URL {final_url}",
+        )
+    else:
+        check(
+            "Demo-Listing beim Ersterststart (Beispieldaten)",
+            False,
+            "keine Listings vorhanden (LITE_SEED_DEMO deaktiviert?)",
+        )
+
+    # 4./5. Drei Listings anlegen, viertes wird abgelehnt (3-Listing-Limit)
     listing_data = {
         "title": "Tagesplan für Kinder – visuelle Routinekarte zum Ausdrucken, PDF",
         "description": (
@@ -136,7 +168,7 @@ def main() -> int:
                 "4. Listing abgelehnt (3-Listing-Limit)", ok, f"Final-URL {final_url}"
             )
 
-    # 5. Analyse des ersten Listings (Analyseaustausch)
+    # 6. Analyse des ersten Listings (Analyseaustausch)
     if detail_url is not None:
         pk = detail_url.rstrip("/").rsplit("/", 1)[1]
         form = s.get(f"{base}/app/listings/{pk}/analysieren/").read().decode(
