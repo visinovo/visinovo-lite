@@ -41,10 +41,19 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
+          # Direkt über die REST-API statt `gh`-CLI: Die CLI findet auf manchen
+          # windows-latest-Runnern keine Host-/Cred-Config ("could not find any
+          # host configurations") und bricht ab. Die REST-API mit GITHUB_TOKEN
+          # ist verlässlich (privat wie public).
+          $repo = $env:GITHUB_REPOSITORY
+          $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
           New-Item -ItemType Directory -Force -Path downloads | Out-Null
-          gh release download latest `
-              --pattern "Visinovo-Lite-Setup-*.exe" `
-              --clobber -D downloads
+          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/latest" -Headers $headers
+          $exe = $release.assets | Where-Object { $_.name -like "Visinovo-Lite-Setup-*.exe" } | Select-Object -First 1
+          if ($null -eq $exe) { throw "Keine Setup-EXE im aktuellen Release gefunden" }
+          $dlHeaders = @{ Authorization = "token $env:GITHUB_TOKEN"; Accept = "application/octet-stream" }
+          $resp = Invoke-WebRequest -Uri $exe.url -Headers $dlHeaders
+          [System.IO.File]::WriteAllBytes((Join-Path "downloads" $exe.name), $resp.Content)
           Get-ChildItem downloads
 
       - name: Dokumentierte SHA-256 ermitteln + Download verifizieren
@@ -57,8 +66,9 @@ jobs:
 
           # Primärquelle: Release-Body (Zeile "SHA-256: <hex>", s.
           # docs/RELEASE_CHECKLIST.md Schritt 7). Fallback: SHA256SUMS.txt.
-          $json = gh release view latest --json body
-          $body = ($json | ConvertFrom-Json).body
+          $repo = $env:GITHUB_REPOSITORY
+          $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
+          $body = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/latest" -Headers $headers).body
           $match = [regex]::Match($body, 'SHA-256:\s*([0-9a-fA-F]{64})')
           $expected = $null
           if ($match.Success) { $expected = $match.Groups[1].Value.ToUpper() }
