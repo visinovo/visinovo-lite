@@ -41,18 +41,32 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          # Direkt über die REST-API statt `gh`-CLI: Die CLI findet auf manchen
-          # windows-latest-Runnern keine Host-/Cred-Config ("could not find any
-          # host configurations") und bricht ab. Die REST-API mit GITHUB_TOKEN
-          # ist verlässlich (privat wie public).
+          # Direkt ueber die REST-API statt `gh`-CLI (findet auf manchen
+          # windows-latest-Runnern keine Host-/Cred-Config). Auth ist optional:
+          # erst mit Token (privates Repo), dann ohne Token (publices Repo).
+          # So laeuft der Test, egal ob GITHUB_TOKEN hier verfuegbar ist.
           $repo = $env:GITHUB_REPOSITORY
-          $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
+          $api = "https://api.github.com/repos/$repo/releases/latest"
           New-Item -ItemType Directory -Force -Path downloads | Out-Null
-          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/latest" -Headers $headers
+
+          $release = $null
+          if ($env:GITHUB_TOKEN) {
+              try {
+                  $release = Invoke-RestMethod -Uri $api -Headers @{ Authorization = "token $env:GITHUB_TOKEN" } -ErrorAction Stop
+              } catch { Write-Host "(Token-Request fehlgeschlagen, versuche ohne Token: $($_.Exception.Message))" }
+          }
+          if ($null -eq $release) { $release = Invoke-RestMethod -Uri $api }
+
           $exe = $release.assets | Where-Object { $_.name -like "Visinovo-Lite-Setup-*.exe" } | Select-Object -First 1
           if ($null -eq $exe) { throw "Keine Setup-EXE im aktuellen Release gefunden" }
-          $dlHeaders = @{ Authorization = "token $env:GITHUB_TOKEN"; Accept = "application/octet-stream" }
-          $resp = Invoke-WebRequest -Uri $exe.url -Headers $dlHeaders
+
+          $resp = $null
+          if ($env:GITHUB_TOKEN) {
+              try {
+                  $resp = Invoke-WebRequest -Uri $exe.url -Headers @{ Authorization = "token $env:GITHUB_TOKEN"; Accept = "application/octet-stream" } -ErrorAction Stop
+              } catch { Write-Host "(Token-Download fehlgeschlagen, versuche ohne Token: $($_.Exception.Message))" }
+          }
+          if ($null -eq $resp) { $resp = Invoke-WebRequest -Uri $exe.url -Headers @{ Accept = "application/octet-stream" } }
           [System.IO.File]::WriteAllBytes((Join-Path "downloads" $exe.name), $resp.Content)
           Get-ChildItem downloads
 
@@ -66,9 +80,16 @@ jobs:
 
           # Primärquelle: Release-Body (Zeile "SHA-256: <hex>", s.
           # docs/RELEASE_CHECKLIST.md Schritt 7). Fallback: SHA256SUMS.txt.
+          # Auth optional: erst mit Token, dann ohne (publices Repo).
           $repo = $env:GITHUB_REPOSITORY
-          $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
-          $body = (Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/latest" -Headers $headers).body
+          $api = "https://api.github.com/repos/$repo/releases/latest"
+          $rel = $null
+          if ($env:GITHUB_TOKEN) {
+              try { $rel = Invoke-RestMethod -Uri $api -Headers @{ Authorization = "token $env:GITHUB_TOKEN" } -ErrorAction Stop }
+              catch { Write-Host "(Token-Request fehlgeschlagen, versuche ohne Token: $($_.Exception.Message))" }
+          }
+          if ($null -eq $rel) { $rel = Invoke-RestMethod -Uri $api }
+          $body = $rel.body
           $match = [regex]::Match($body, 'SHA-256:\s*([0-9a-fA-F]{64})')
           $expected = $null
           if ($match.Success) { $expected = $match.Groups[1].Value.ToUpper() }
