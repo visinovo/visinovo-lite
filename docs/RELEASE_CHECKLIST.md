@@ -138,12 +138,15 @@ Get-FileHash .\dist\setup\Visinovo-Lite-Setup-<version>.exe -Algorithm SHA256
 
 - [ ] `.github/FUNDING.yml`:
   - `github:` → echtes GitHub-Sponsors-Profil
-  - `buy_me_a_coffee:` → echtes Buy-Me-a-Coffee-Profil
+  - `ko_fi:` → echtes Ko-fi-Profil
+  - `liberapay:` → echtes Liberapay-Profil
   - nicht genutzte Kanäle die Zeile löschen.
-- [ ] Ggf. `LITE_SUPPORT_URL` im SaaS-Repository
-      (`visinovo/settings_lite.py`) auf die finale
-      Buy-Me-a-Coffee-URL setzen (UI-Link „Projekt
-      unterstützen“).
+- [ ] Die App-Links (`LITE_SPONSOR_LINKS` im SaaS-Repository,
+      `visinovo/settings_lite.py`) auf dieselben Profile zeigen
+      lassen: Env `LITE_SPONSORS_URL`, `LITE_KO_FI_URL`,
+      `LITE_LIBERAPAY_URL` (leerer Wert blendet den Kanal im UI aus).
+- [ ] `README.md` (Sektion „Lizenz & Support“) bei geänderten
+      Kanälen/Profilen mit anpassen.
 - [ ] Mit dem nächsten Build (Schritt 3) übernehmen.
 
 ## 10. EULA final prüfen `[Lite]`

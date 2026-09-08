@@ -1,11 +1,12 @@
 # Visinovo Lite – Projekt unterstützen
 #
-# WICHTIG (vor der Veröffentlichung): Die Werte unten sind PLATZHALTER.
-# Vor dem ersten öffentlichen Push durch die echten Profil-URLs ersetzen
-# (siehe docs/RELEASE_CHECKLIST.md, Schritt „FUNDING-Links befüllen").
-# Zeilen können einfach gelöscht werden, wenn ein Kanal nicht genutzt
-# werden soll.
+# Diese Kanäle sind die offiziellen Unterstützungswege für Visinovo Lite
+# (dieselben Links zeigt auch die App in *Einstellungen → Projekt
+# unterstützen*). Zeilen können gelöscht werden, wenn ein Kanal nicht
+# (mehr) genutzt werden soll – die App-Links werden im SaaS-Repository
+# über die Env-Variablen LITE_SPONSORS_URL / LITE_KO_FI_URL /
+# LITE_LIBERAPAY_URL angepasst.
 
-github: [visinovo]            # GitHub Sponsors: https://github.com/sponsors/<profil>
-ko_fi: visinovo
-liberapay: visinovo
+github: [visinovo]            # GitHub Sponsors: https://github.com/sponsors/visinovo
+ko_fi: visinovo               # https://ko-fi.com/visinovo
+liberapay: visinovo           # https://liberapay.com/visinovo

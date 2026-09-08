@@ -102,8 +102,10 @@ Details im [Datenschutzhinweis](docs/DATENSCHUTZ.md).
   (siehe [Support](docs/SUPPORT.md)).
 - Wenn Dir Visinovo Lite gefällt und Du das Projekt unterstützen
   möchtest, hilft das sehr:
-  [Buy Me a Coffee](https://www.buymeacoffee.com/visinovo)
-  (Link öffnet sich im externen Browser – die App selbst stellt
+  [GitHub Sponsors](https://github.com/sponsors/visinovo) ·
+  [Ko-fi](https://ko-fi.com/visinovo) ·
+  [Liberapay](https://liberapay.com/visinovo)
+  (Links öffnen sich im externen Browser – die App selbst stellt
   keine Verbindung dazu her).
 
 ## Repository-Inhalt

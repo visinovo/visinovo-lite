@@ -10,9 +10,45 @@ Setup-EXE angegeben (Details zur Verifikation:
 [Installationsanleitung](docs/INSTALLATION.md)). Die maschinenlesbare
 Fassung liegt in [`SHA256SUMS.txt`](SHA256SUMS.txt).
 
+## [0.2.0] – 2026-09-08
+
+Erste öffentliche Version von Visinovo Lite.
+
+### Hinzugefügt
+
+- **Demo-Listing beim ersten Start** („Stirnholzbrett aus Birke“ –
+  handgemachtes Schneidebrett) mit drei Analysen und Score-Verlauf,
+  8 Wochen Shopstatistik und einem abgeschlossenen
+  Optimierungsexperiment; eindeutig erkennbare Beispieldaten, jederzeit
+  löschbar.
+- **Projekt unterstützen** (Footer und *Einstellungen*): offizielle
+  Unterstützungs-Kanäle [GitHub Sponsors](https://github.com/sponsors/visinovo),
+  [Ko-fi](https://ko-fi.com/visinovo) und
+  [Liberapay](https://liberapay.com/visinovo).
+
+### Behoben
+
+- „Daten zurücksetzen“ konnte an einer vom laufenden Prozess
+  gesperrten Windows-Datenbank-Datei scheitern; der Reset arbeitet
+  jetzt zuverlässig mit geschütztem Datei-Handling.
+
+### Bekannte Einschränkungen
+
+- wie in [0.1.0] (unsigned EXE/SmartScreen, kein automatisches
+  Update, WebView2-Runtime).
+
+### Download & Integrität
+
+| Datei | Größe | SHA-256 |
+|---|---|---|
+| `Visinovo-Lite-Setup-0.2.0.exe` | 40,9 MB | `AF06F8F2BA5506B95F4F67AB7F8B299160857B31062B031C8A88915F0A1BACFB` |
+
+Download: <https://github.com/visinovo/visinovo-lite/releases/tag/lite-v0.2.0>
+
 ## [0.1.0] – 2026-09-03
 
-Erstveröffentlichung (Erst-Release) von Visinovo Lite.
+Internes Erst-Build (nicht veröffentlicht; erste öffentliche Version
+ist [0.2.0]).
 
 ### Hinzugefügt
 
