@@ -32,6 +32,18 @@ Alle Daten bleiben **ausschließlich auf Deinem Computer**.
 > Regeln und Listen (z. B. deutsche Stopwörter, Titel-/Tags-Limits).
 > Es werden **keine KI-Dienste** und **keine externen APIs** genutzt.
 
+## Ein Blick ins Detail
+
+![Listing-Formular](docs/screenshots/listing-form.png)
+
+Das Listing-Formular ist aus dem gewählten Listing vorausgefüllt –
+Titel, Beschreibung, Tags & Co. kannst Du vor jeder Analyse anpassen.
+
+![Analyse-Ergebnis](docs/screenshots/analysis-result.png)
+
+Das Analyse-Ergebnis zeigt den Qualitätsscore, die sechs
+Teilbewertungen sowie Stärken und konkrete Verbesserungsvorschläge.
+
 ## Voraussetzungen
 
 | | |
@@ -51,6 +63,15 @@ Alle Daten bleiben **ausschließlich auf Deinem Computer**.
 Die vollständige Anleitung mit **Prüfsummen-Verifikation (SHA-256)** und
 Hinweisen zu SmartScreen-Warnungen findest Du in der
 [Installationsanleitung](docs/INSTALLATION.md).
+
+## Demo-Listing beim ersten Start
+
+Beim ersten Start legt die App automatisch ein **Beispiel-Listing**
+(„Stirnholzbrett aus Birke“ – handgemachtes Schneidebrett) mit drei
+Analysen und Score-Verlauf, 8 Wochen Shopstatistik und einem
+abgeschlossenen Optimierungsexperiment an – so kannst Du alle
+Funktionen direkt ausprobieren. Alle Werte sind eindeutig erkennbare
+**Beispieldaten**; das Listing kannst Du jederzeit löschen.
 
 ## Deinstallation
 
